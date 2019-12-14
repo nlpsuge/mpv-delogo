@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+RESOLUTIONS_DELOGOS=(
+"1024,544|delogo=170:460:640:45"
+"1024,576|delogo=170:490:640:45"
+"1280,720|delogo=170:640:1000:45"
+"1280,718|delogo=170:640:1000:45"
+"1280,640|delogo=170:560:1000:45"
+"1920,1080|delogo=370:950:1050:60"
+"1920,1036|delogo=370:860:1050:60"
+"1920,808|delogo=470:710:1050:60"
+"1920,800|delogo=470:700:1050:60"
+"960,540|delogo=70:470:800:45"
+"960,528|delogo=70:470:800:45"
+"796,576|delogo=70:500:650:45"
+"720,400|delogo=30:355:600:23"
+"576,432|delogo=30:380:400:23"
+"720,480|delogo=30:420:500:23"
+"640,480|delogo=30:420:500:23"   
+"1264,688|delogo=170:600:1000:45"
+"1796,1072|delogo=470:910:1000:45"
+"1912,1072|delogo=470:960:1000:45"
+"1916,1076|delogo=470:960:1000:45"
+"1920,1072|delogo=470:955:1000:45"
+)
+
+DELOGO_PARAMETER=""
+MEDIA_FILE_NAME="${@: -1}"
+MEDIA_RESOLUTION="$(ffprobe -select_streams v:0 -show_entries stream=width,height -of csv=p=0:s=',' "$MEDIA_FILE_NAME")"
+for resolution_delogo in "${RESOLUTIONS_DELOGOS[@]}"; do
+    resolution="$(echo "$resolution_delogo" | awk -F "|" '{print $1}')"
+    if [ "$resolution" = "$MEDIA_RESOLUTION" ]; then
+	echo Matched "$resolution_delogo". 
+        delogo="$(echo "$resolution_delogo" | awk -F "|" '{print $2}')"
+	echo Setting delogo to "$delogo" ...
+        DELOGO_PARAMETER="--vf-add=$delogo"
+	break
+    fi
+done
+
+echo New parameters is [ $DELOGO_PARAMETER "$@" ].
+
+echo Start to play "$MEDIA_FILE_NAME"
+
+mpv $DELOGO_PARAMETER "$@"
